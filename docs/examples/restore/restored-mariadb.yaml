@@ -1,0 +1,21 @@
+apiVersion: kubedb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: restored-mariadb
+  namespace: demo
+spec:
+  version: "10.5.5"
+  databaseSecret:
+    secretName: sample-mariadb-auth
+  replicas: 1
+  storageType: Durable
+  storage:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 50Mi
+  init:
+    stashRestoreSession:
+      name: restore-sample-mariadb
+  terminationPolicy: WipeOut
