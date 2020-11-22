@@ -56,13 +56,13 @@ github.com/emicklei/go-restful/log
 github.com/evanphx/json-patch
 # github.com/fatih/structs v1.1.0
 github.com/fatih/structs
-# github.com/go-openapi/jsonpointer v0.19.3
+# github.com/go-openapi/jsonpointer v0.19.3 => github.com/go-openapi/jsonpointer v0.19.3
 github.com/go-openapi/jsonpointer
-# github.com/go-openapi/jsonreference v0.19.3
+# github.com/go-openapi/jsonreference v0.19.3 => github.com/go-openapi/jsonreference v0.19.3
 github.com/go-openapi/jsonreference
-# github.com/go-openapi/spec v0.19.8
+# github.com/go-openapi/spec v0.19.8 => github.com/go-openapi/spec v0.19.3
 github.com/go-openapi/spec
-# github.com/go-openapi/swag v0.19.9
+# github.com/go-openapi/swag v0.19.9 => github.com/go-openapi/swag v0.19.5
 github.com/go-openapi/swag
 # github.com/gogo/protobuf v1.3.1 => github.com/gogo/protobuf v1.3.1
 github.com/gogo/protobuf/gogoproto
@@ -164,10 +164,10 @@ github.com/yudai/gojsondiff
 github.com/yudai/gojsondiff/formatter
 # github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82
 github.com/yudai/golcs
-# go.bytebuilders.dev/license-verifier v0.3.0
+# go.bytebuilders.dev/license-verifier v0.5.1
 go.bytebuilders.dev/license-verifier
 go.bytebuilders.dev/license-verifier/info
-# go.bytebuilders.dev/license-verifier/kubernetes v0.3.0
+# go.bytebuilders.dev/license-verifier/kubernetes v0.5.1
 go.bytebuilders.dev/license-verifier/kubernetes
 go.bytebuilders.dev/license-verifier/kubernetes/apis/licenses
 go.bytebuilders.dev/license-verifier/kubernetes/apis/licenses/v1alpha1
@@ -273,7 +273,7 @@ golang.org/x/xerrors/internal
 gomodules.xyz/homedir
 # gomodules.xyz/jsonpatch/v2 v2.1.0
 gomodules.xyz/jsonpatch/v2
-# gomodules.xyz/pointer v0.0.0-20201105071923-daf60fa55209
+# gomodules.xyz/pointer v0.0.0-20201105040656-991dd254b680
 gomodules.xyz/pointer
 # gomodules.xyz/sets v0.0.0-20200930152147-4f4543544799
 gomodules.xyz/sets
@@ -871,11 +871,11 @@ kmodules.xyz/custom-resources/client/clientset/versioned
 kmodules.xyz/custom-resources/client/clientset/versioned/scheme
 kmodules.xyz/custom-resources/client/clientset/versioned/typed/appcatalog/v1alpha1
 kmodules.xyz/custom-resources/crds
-# kmodules.xyz/objectstore-api v0.0.0-20201105133858-cbb2af88d50a
+# kmodules.xyz/objectstore-api v0.0.0-20200922210707-59bab27e5d41
 kmodules.xyz/objectstore-api/api/v1
 # kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 kmodules.xyz/offshoot-api/api/v1
-# kmodules.xyz/prober v0.0.0-20201105074402-a243b3a27fd8
+# kmodules.xyz/prober v0.0.0-20200922212142-743a6514664e
 kmodules.xyz/prober/api/v1
 # sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.0.7
 sigs.k8s.io/apiserver-network-proxy/konnectivity-client/pkg/client
