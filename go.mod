@@ -12,6 +12,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/yudai/gojsondiff v1.0.0
 	go.bytebuilders.dev/license-verifier/kubernetes v0.5.1
+	gomodules.xyz/runtime v0.0.0-20201104200926-d838b09dda8b
 	k8s.io/api v0.18.9
 	k8s.io/apiextensions-apiserver v0.18.9
 	k8s.io/apimachinery v0.18.9
