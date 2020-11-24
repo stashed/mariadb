@@ -22,8 +22,8 @@ import (
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	"stash.appscode.dev/apimachinery/pkg/restic"
 
-	"github.com/appscode/go/log"
 	"github.com/codeskyblue/go-sh"
+	"gomodules.xyz/x/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
@@ -34,8 +34,8 @@ const (
 	MariaDBUser        = "username"
 	MariaDBPassword    = "password"
 	MariaDBDumpFile    = "dumpfile.sql"
-	MariaDBDumpCMD     = "mariadbdump"
-	MariaDBRestoreCMD  = "mariadb"
+	MariaDBDumpCMD     = "mysqldump"
+	MariaDBRestoreCMD  = "mysql"
 	EnvMariaDBPassword = "MYSQL_PWD"
 )
 
@@ -66,5 +66,8 @@ func waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret, waitTi
 		"--user=root",
 		fmt.Sprintf("--wait=%d", waitTimeout),
 	}
-	return shell.Command("mariadbadmin", args...).Run()
+	if appBinding.Spec.ClientConfig.Service.Port != 0 {
+		args = append(args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
+	}
+	return shell.Command("mysqladmin", args...).Run()
 }

@@ -18,6 +18,7 @@ package pkg
 
 import (
 	"context"
+	"fmt"
 	"path/filepath"
 	"strings"
 
@@ -26,9 +27,9 @@ import (
 	"stash.appscode.dev/apimachinery/pkg/restic"
 	api_util "stash.appscode.dev/apimachinery/pkg/util"
 
-	"github.com/appscode/go/flags"
 	"github.com/spf13/cobra"
 	license "go.bytebuilders.dev/license-verifier/kubernetes"
+	"gomodules.xyz/x/flags"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -211,6 +212,10 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 			"-u", string(appBindingSecret.Data[MariaDBUser]),
 			"-h", appBinding.Spec.ClientConfig.Service.Name,
 		},
+	}
+	// if port is specified, append port in the arguments
+	if appBinding.Spec.ClientConfig.Service.Port != 0 {
+		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
 	}
 	for _, arg := range strings.Fields(opt.myArgs) {
 		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, arg)
