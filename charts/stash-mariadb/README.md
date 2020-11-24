@@ -12,7 +12,7 @@ $ helm install stash-mariadb-v2020.09.16 appscode/stash-mariadb -n kube-system -
 
 ## Introduction
 
-This chart deploys necessary `Function` and `Task` definition to backup or restore MariaDB 10.5.8 using Stash on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
+This chart deploys necessary `Function` and `Task` definition to backup or restore MariaDB 10.5.5 using Stash on a [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
 
 ## Prerequisites
 
@@ -26,7 +26,7 @@ To install the chart with the release name `stash-mariadb-v2020.09.16`:
 $ helm install stash-mariadb-v2020.09.16 appscode/stash-mariadb -n kube-system --version=v2020.09.16
 ```
 
-The command deploys necessary `Function` and `Task` definition to backup or restore MariaDB 10.5.8 using Stash on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
+The command deploys necessary `Function` and `Task` definition to backup or restore MariaDB 10.5.5 using Stash on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
 
 > **Tip**: List all releases using `helm list`
 
