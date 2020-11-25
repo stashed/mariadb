@@ -1,18 +1,18 @@
 ---
-title: Backup & Restore MariaDB | Stash
-description: Backup MariaDB database using Stash
+title: Logical Backup & Restore MariaDB | Stash
+description: Take logical backup of MariaDB database using Stash
 menu:
   docs_{{ .version }}:
-    identifier: mariadb-guide-{{ .subproject_version }}
-    name: Backup & Restore MariaDB
-    parent: stash-mariadb-guides-{{ .subproject_version }}
+    identifier: mariadb-guide-{{ .subproject_version }}-helm-logical
+    name: Logical Backup
+    parent: stash-mariadb-guides-{{ .subproject_version }}-helm
     weight: 10
 product_name: stash
 menu_name: docs_{{ .version }}
 section_menu_id: stash-addons
 ---
 
-# Backup and Restore MariaDB database using Stash
+# Take logical backup of MariaDB database using Stash
 
 Stash 0.9.0+ supports backup and restoration of MariaDB databases. This guide will show you how you can backup and restore your MariaDB database with Stash.
 
