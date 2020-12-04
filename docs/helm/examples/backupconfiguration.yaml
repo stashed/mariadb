@@ -6,7 +6,7 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   task:
-    name: mariadb-backup-10.5.5
+    name: mariadb-backup-v2020.09.16
   repository:
     name: gcs-repo
   target:
