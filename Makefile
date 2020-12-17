@@ -48,9 +48,7 @@ else
 	endif
 endif
 
-RESTIC_VER       := 0.8.3
-# also update in restic wrapper library
-NEW_RESTIC_VER   := 0.9.6
+RESTIC_VER       := 0.11.0
 
 ###
 ### These variables should not need tweaking.
@@ -66,8 +64,8 @@ BIN_PLATFORMS    := $(DOCKER_PLATFORMS)
 OS   := $(if $(GOOS),$(GOOS),$(shell go env GOOS))
 ARCH := $(if $(GOARCH),$(GOARCH),$(shell go env GOARCH))
 
-BASEIMAGE_PROD   ?= mariadb:10.5.5
-BASEIMAGE_DBG    ?= mariadb:10.5.5
+BASEIMAGE_PROD   ?= mariadb:10.5.8
+BASEIMAGE_DBG    ?= mariadb:10.5.8
 
 IMAGE            := $(REGISTRY)/$(BIN)
 VERSION_PROD     := $(VERSION)
@@ -397,7 +395,6 @@ bin/.container-$(DOTFILE_IMAGE)-%: bin/$(OS)_$(ARCH)/$(BIN) $(DOCKERFILE_%)
 		-e 's|{ARG_OS}|$(OS)|g'                     \
 		-e 's|{ARG_FROM}|$(BASEIMAGE_$*)|g'         \
 		-e 's|{RESTIC_VER}|$(RESTIC_VER)|g'         \
-		-e 's|{NEW_RESTIC_VER}|$(NEW_RESTIC_VER)|g' \
 		$(DOCKERFILE_$*) > bin/.dockerfile-$*-$(OS)_$(ARCH)
 	@DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform $(OS)/$(ARCH) --load --pull -t $(IMAGE):$(TAG_$*) -f bin/.dockerfile-$*-$(OS)_$(ARCH) .
 	@docker images -q $(IMAGE):$(TAG_$*) > $@
@@ -564,3 +561,10 @@ release:
 .PHONY: clean
 clean:
 	rm -rf .go bin
+
+# make and load docker image to kind cluster
+.PHONY: push-to-kind
+push-to-kind: container
+	@echo "Loading docker image into kind cluster...."
+	@kind load docker-image $(REGISTRY)/$(BIN):$(TAG)
+	@echo "Image has been pushed successfully into kind cluster."

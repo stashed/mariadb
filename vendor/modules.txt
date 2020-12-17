@@ -22,7 +22,6 @@ github.com/PuerkitoBio/urlesc
 # github.com/appscode/go v0.0.0-20200928211031-cc0c23082d91
 github.com/appscode/go/context
 github.com/appscode/go/encoding/json/types
-github.com/appscode/go/flags
 github.com/appscode/go/log
 github.com/appscode/go/sets
 github.com/appscode/go/types
@@ -282,7 +281,11 @@ gomodules.xyz/sets
 gomodules.xyz/version
 # gomodules.xyz/x v0.0.0-20201105065653-91c568df6331
 gomodules.xyz/x/analytics
+gomodules.xyz/x/context
+gomodules.xyz/x/flags
+gomodules.xyz/x/log
 gomodules.xyz/x/log/golog
+gomodules.xyz/x/version
 # google.golang.org/appengine v1.6.6
 google.golang.org/appengine
 google.golang.org/appengine/internal
