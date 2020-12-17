@@ -299,8 +299,8 @@ chart-contents-%:
 		yq w -i ./charts/$*/Chart.yaml version --tag '!!str' $(CHART_VERSION);             \
 		yq w -i ./charts/$*/doc.yaml chart.version --tag '!!str' $(CHART_VERSION);         \
 		yq w -i ./charts/$*/doc.yaml release.name --tag '!!str' $(BIN)-$(CHART_VERSION);   \
-		yq w -i ./docs/examples/backup/backupconfiguration.yaml spec.task.name --tag '!!str' mariadb-backup-$(CHART_VERSION); \
-		yq w -i ./docs/examples/restore/restoresession.yaml spec.task.name --tag '!!str' mariadb-restore-$(CHART_VERSION); \
+		yq w -i ./docs/helm/examples/backupconfiguration.yaml spec.task.name --tag '!!str' mariadb-backup-$(CHART_VERSION); \
+		yq w -i ./docs/helm/examples/restoresession.yaml spec.task.name --tag '!!str' mariadb-restore-$(CHART_VERSION); \
 	fi
 	@if [ ! -z "$(APP_VERSION)" ]; then                                                    \
 		yq w -i ./charts/$*/Chart.yaml appVersion --tag '!!str' $(APP_VERSION);            \
