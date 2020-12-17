@@ -3,7 +3,6 @@ module stash.appscode.dev/mariadb
 go 1.12
 
 require (
-	github.com/appscode/go v0.0.0-20200928211031-cc0c23082d91
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
 	github.com/go-openapi/spec v0.19.8
 	github.com/gogo/protobuf v1.3.1
@@ -24,7 +23,7 @@ require (
 	kmodules.xyz/custom-resources v0.0.0-20201124062543-bd8d35c21b0c
 	kmodules.xyz/offshoot-api v0.0.0-20201105074700-8675f5f686f2
 	sigs.k8s.io/yaml v1.2.0
-	stash.appscode.dev/apimachinery v0.11.3-0.20201012035827-8f31689080d6
+	stash.appscode.dev/apimachinery v0.11.8
 )
 
 replace bitbucket.org/ww/goautoneg => gomodules.xyz/goautoneg v0.0.0-20120707110453-a547fc61f48d
