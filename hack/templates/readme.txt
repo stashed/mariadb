@@ -4,28 +4,30 @@
 [![Slack](https://slack.appscode.com/badge.svg)](https://slack.appscode.com)
 [![Twitter](https://img.shields.io/twitter/follow/appscodehq.svg?style=social&logo=twitter&label=Follow)](https://twitter.com/intent/follow?screen_name=AppsCodeHQ)
 
+{{ $v := semver .version -}}
+
 # MariaDB
 
 MariaDB backup and restore plugin for [Stash by AppsCode](https://appscode.com/products/stash).
 
 ## Install
 
-Install MariaDB 10.5.8 backup or restore plugin for Stash as below.
+Install MariaDB {{ $v.Major }}.{{ $v.Minor }}.{{ $v.Patch }} backup or restore plugin for Stash as below.
 
 ```console
 helm repo add appscode https://charts.appscode.com/stable/
 helm repo update
-helm install stash-mariadb-10.5.8 appscode/stash-mariadb --version=10.5.8 --namespace=kube-system
+helm install stash-mariadb-{{ .version }} appscode/stash-mariadb --version={{ .version }} --namespace=kube-system
 ```
 
 To install catalog for all supported MariaDB versions, please visit [here](https://github.com/stashed/catalog).
 
 ## Uninstall
 
-Uninstall MariaDB 10.5.8 backup or restore plugin for Stash as below.
+Uninstall MariaDB {{ $v.Major }}.{{ $v.Minor }}.{{ $v.Patch }} backup or restore plugin for Stash as below.
 
 ```console
-helm uninstall stash-mariadb-10.5.8 --namespace=kube-system
+helm uninstall stash-mariadb-{{ .version }} --namespace=kube-system
 ```
 
 ## Support
