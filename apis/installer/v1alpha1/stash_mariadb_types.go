@@ -21,12 +21,12 @@ import (
 )
 
 const (
-	ResourceKindStashMariaDB = "StashMariaDB"
-	ResourceStashMariaDB     = "stashmariadb"
-	ResourceStashMariaDBs    = "stashmariadbs"
+	ResourceKindStashMariadb = "StashMariadb"
+	ResourceStashMariadb     = "stashmariadb"
+	ResourceStashMariadbs    = "stashmariadbs"
 )
 
-// StashMariaDB defines the schama for Stash MariaDB Installer.
+// StashMariadb defines the schama for Stash MariaDB Installer.
 
 // +genclient
 // +genclient:skipVerbs=updateStatus
@@ -35,46 +35,46 @@ const (
 
 // +kubebuilder:object:root=true
 // +kubebuilder:resource:path=stashmariadbs,singular=stashmariadb,categories={stash,appscode}
-type StashMariaDB struct {
+type StashMariadb struct {
 	metav1.TypeMeta   `json:",inline,omitempty"`
-	metav1.ObjectMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-	Spec              StashMariaDBSpec `json:"spec,omitempty" protobuf:"bytes,2,opt,name=spec"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+	Spec              StashMariadbSpec `json:"spec,omitempty"`
 }
 
-// StashMariaDBSpec is the schema for Stash MariaDB values file
-type StashMariaDBSpec struct {
+// StashMariadbSpec is the schema for Stash MariaDB values file
+type StashMariadbSpec struct {
 	// +optional
-	NameOverride string `json:"nameOverride" protobuf:"bytes,1,opt,name=nameOverride"`
+	NameOverride string `json:"nameOverride"`
 	// +optional
-	FullnameOverride string         `json:"fullnameOverride" protobuf:"bytes,2,opt,name=fullnameOverride"`
-	Image            ImageRef       `json:"image" protobuf:"bytes,3,opt,name=image"`
-	Backup           MariaDBBackup  `json:"backup" protobuf:"bytes,4,opt,name=backup"`
-	Restore          MariaDBRestore `json:"restore" protobuf:"bytes,5,opt,name=restore"`
-	WaitTimeout      int64          `json:"waitTimeout" protobuf:"varint,6,opt,name=waitTimeout"`
+	FullnameOverride string         `json:"fullnameOverride"`
+	Image            ImageRef       `json:"image"`
+	Backup           MariaDBBackup  `json:"backup"`
+	Restore          MariaDBRestore `json:"restore"`
+	WaitTimeout      int64          `json:"waitTimeout"`
 }
 
 type ImageRef struct {
-	Registry   string `json:"registry" protobuf:"bytes,1,opt,name=registry"`
-	Repository string `json:"repository" protobuf:"bytes,2,opt,name=repository"`
-	Tag        string `json:"tag" protobuf:"bytes,3,opt,name=tag"`
+	Registry   string `json:"registry"`
+	Repository string `json:"repository"`
+	Tag        string `json:"tag"`
 }
 
 type MariaDBBackup struct {
 	// +optional
-	Args string `json:"args" protobuf:"bytes,1,opt,name=args"`
+	Args string `json:"args"`
 }
 
 type MariaDBRestore struct {
 	// +optional
-	Args string `json:"args" protobuf:"bytes,1,opt,name=args"`
+	Args string `json:"args"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-// StashMariaDBList is a list of StashMariaDBs
-type StashMariaDBList struct {
+// StashMariadbList is a list of StashMariadbs
+type StashMariadbList struct {
 	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty" protobuf:"bytes,1,opt,name=metadata"`
-	// Items is a list of StashMariaDB CRD objects
-	Items []StashMariaDB `json:"items,omitempty" protobuf:"bytes,2,rep,name=items"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+	// Items is a list of StashMariadb CRD objects
+	Items []StashMariadb `json:"items,omitempty"`
 }
