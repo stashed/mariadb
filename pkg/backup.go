@@ -19,8 +19,12 @@ package pkg
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
@@ -36,6 +40,10 @@ import (
 	appcatalog "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcatalog_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 	v1 "kmodules.xyz/offshoot-api/api/v1"
+)
+
+const (
+	MariaDBTLSCertFileName = "ca.crt"
 )
 
 func NewCmdBackup() *cobra.Command {
@@ -227,8 +235,25 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 		return nil, err
 	}
 
-	// append the backup command to the pipeline
-	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, backupCmd)
+	if appBinding.Spec.ClientConfig.CABundle != nil {
+		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSCertFileName), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
+			return nil, err
+		}
+		adminCreds = []interface{}{
+			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSCertFileName)),
+		}
+
+		certData, ok := appBindingSecret.Data[MariaDBTLSCertFileName]
+		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSCertFileName), certData, os.ModePerm); err != nil {
+			return nil, errors.Wrap(err, "failed to write client certificate")
+		}
+
+		adminCreds = append(adminCreds, []interface{}{})
+		if !ok {
+			return nil, errors.Wrap(err, "unable to retrieve ca.crt from secret.")
+		}
+		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, certData)
+	}
 
 	// Run backup
 	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
