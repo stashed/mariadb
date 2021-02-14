@@ -25,12 +25,12 @@ Stash `v0.11.8+` supports backup and restoration of MariaDB databases. This guid
 
 You have to be familiar with following custom resources:
 
-- [AppBinding](/docs/concepts/objects/appbinding.md)
-- [Function](/docs/concepts/objects/function.md)
-- [Task](/docs/concepts/objects/task.md)
-- [BackupConfiguration](/docs/concepts/objects/backupconfiguration.md)
-- [BackupSession](/docs/concepts/objects/backupsession.md)
-- [RestoreSession](/docs/concepts/objects/restoresession.md)
+- [AppBinding](/docs/concepts/crds/appbinding.md)
+- [Function](/docs/concepts/crds/function.md)
+- [Task](/docs/concepts/crds/task.md)
+- [BackupConfiguration](/docs/concepts/crds/backupconfiguration.md)
+- [BackupSession](/docs/concepts/crds/backupsession.md)
+- [RestoreSession](/docs/concepts/crds/restoresession.md)
 
 To keep things isolated, we are going to use a separate namespace called `demo` throughout this tutorial. Create `demo` namespace if you haven't created it yet.
 
@@ -398,7 +398,7 @@ gcs-repo   true        1.327 MiB   1                60s                      8m
 Now, if we navigate to the GCS bucket, we will see the backed up data has been stored in `demo/mariadb/sample-mariadb` directory as specified by `.spec.backend.gcs.prefix` field of the `Repository` object.
 
 <figure align="center">
-  <img alt="Backup data in GCS Bucket" src="./images/sample-mariadb-backup.png">
+  <img alt="Backup data in GCS Bucket" src="/docs/helm/images/sample-mariadb-backup.png">
   <figcaption align="center">Fig: Backup data in GCS Bucket</figcaption>
 </figure>
 
