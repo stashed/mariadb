@@ -24,8 +24,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/pkg/errors"
-
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	"stash.appscode.dev/apimachinery/pkg/restic"
@@ -43,7 +41,7 @@ import (
 )
 
 const (
-	MariaDBTLSCertFileName = "ca.crt"
+	MariaDBTLSRootCA = "ca.crt"
 )
 
 func NewCmdBackup() *cobra.Command {
@@ -229,30 +227,22 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 		backupCmd.Args = append(backupCmd.Args, arg)
 	}
 
+	// if ssl enabled, add ca.crt in the arguments
+	if appBinding.Spec.ClientConfig.CABundle != nil {
+		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
+			return nil, err
+		}
+		tlsCreds := []interface{}{
+			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
+		}
+
+		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, tlsCreds)
+	}
+
 	// wait for DB ready
 	err = waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
 	if err != nil {
 		return nil, err
-	}
-
-	if appBinding.Spec.ClientConfig.CABundle != nil {
-		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSCertFileName), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
-			return nil, err
-		}
-		adminCreds = []interface{}{
-			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSCertFileName)),
-		}
-
-		certData, ok := appBindingSecret.Data[MariaDBTLSCertFileName]
-		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSCertFileName), certData, os.ModePerm); err != nil {
-			return nil, errors.Wrap(err, "failed to write client certificate")
-		}
-
-		adminCreds = append(adminCreds, []interface{}{})
-		if !ok {
-			return nil, errors.Wrap(err, "unable to retrieve ca.crt from secret.")
-		}
-		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, certData)
 	}
 
 	// Run backup
