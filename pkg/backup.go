@@ -215,7 +215,7 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 	backupCmd := restic.Command{
 		Name: MariaDBDumpCMD,
 		Args: []interface{}{
-			"-u", string(appBindingSecret.Data[MariaDBUser]),
+			"-u", "root",
 			"-h", appBinding.Spec.ClientConfig.Service.Name,
 		},
 	}
@@ -236,15 +236,14 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
 		}
 
-		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, tlsCreds)
+		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, tlsCreds...)
 	}
 
 	// wait for DB ready
-	err = waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
+	err = opt.waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
 	if err != nil {
 		return nil, err
 	}
-
 	// Run backup
 	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
 }

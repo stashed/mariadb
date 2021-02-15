@@ -19,6 +19,8 @@ package pkg
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -178,7 +180,7 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 	restoreCmd := restic.Command{
 		Name: MariaDBRestoreCMD,
 		Args: []interface{}{
-			"-u", string(appBindingSecret.Data[MariaDBUser]),
+			"-u", "root",
 			"-h", appBinding.Spec.ClientConfig.Service.Name,
 		},
 	}
@@ -186,12 +188,24 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
 		restoreCmd.Args = append(restoreCmd.Args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
 	}
+	// if ssl enabled, add ca.crt in the arguments
+	if appBinding.Spec.ClientConfig.CABundle != nil {
+		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil{
+			return nil, err
+		}
+		tlsCreds := []interface{}{
+			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
+		}
+
+		opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, tlsCreds...)
+	}
+
 	for _, arg := range strings.Fields(opt.myArgs) {
 		restoreCmd.Args = append(restoreCmd.Args, arg)
 	}
 
 	// wait for DB ready
-	err = waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
+	err = opt.waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
 	if err != nil {
 		return nil, err
 	}

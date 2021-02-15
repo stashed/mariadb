@@ -18,6 +18,7 @@ package pkg
 
 import (
 	"fmt"
+	"path/filepath"
 
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	"stash.appscode.dev/apimachinery/pkg/restic"
@@ -56,7 +57,7 @@ type mariadbOptions struct {
 	dumpOptions   restic.DumpOptions
 }
 
-func waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret, waitTimeout int32) error {
+func (opt *mariadbOptions)  waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret, waitTimeout int32) error {
 	log.Infoln("Waiting for the database to be ready.....")
 	shell := sh.NewSession()
 	shell.SetEnv(EnvMariaDBPassword, string(secret.Data[MariaDBPassword]))
@@ -69,5 +70,10 @@ func waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret, waitTi
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
 		args = append(args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
 	}
+
+	if appBinding.Spec.ClientConfig.CABundle != nil {
+		args = append(args, fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)))
+	}
+
 	return shell.Command("mysqladmin", args...).Run()
 }
