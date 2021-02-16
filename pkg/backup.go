@@ -215,7 +215,7 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 	backupCmd := restic.Command{
 		Name: MariaDBDumpCMD,
 		Args: []interface{}{
-			"-u", "root",
+			"-u", string(appBindingSecret.Data[MariaDBUser]),
 			"-h", appBinding.Spec.ClientConfig.Service.Name,
 		},
 	}
@@ -240,7 +240,7 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 	}
 
 	// wait for DB ready
-	err = opt.waitForDBReady(appBinding, appBindingSecret, opt.waitTimeout)
+	err = opt.waitForDBReady(appBinding, appBindingSecret)
 	if err != nil {
 		return nil, err
 	}

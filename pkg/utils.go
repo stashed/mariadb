@@ -24,6 +24,7 @@ import (
 	"stash.appscode.dev/apimachinery/pkg/restic"
 
 	"github.com/codeskyblue/go-sh"
+	"github.com/davecgh/go-spew/spew"
 	"gomodules.xyz/x/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -57,16 +58,16 @@ type mariadbOptions struct {
 	dumpOptions   restic.DumpOptions
 }
 
-func (opt *mariadbOptions)  waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret, waitTimeout int32) error {
+func (opt *mariadbOptions) waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret) error {
 	log.Infoln("Waiting for the database to be ready.....")
 	shell := sh.NewSession()
 	shell.SetEnv(EnvMariaDBPassword, string(secret.Data[MariaDBPassword]))
 	args := []interface{}{
 		"ping",
 		"--host", appBinding.Spec.ClientConfig.Service.Name,
-		"--user=root",
-		fmt.Sprintf("--wait=%d", waitTimeout),
+		"--user", string(secret.Data[MariaDBUser]),
 	}
+	spew.Dump(args)
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
 		args = append(args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
 	}
