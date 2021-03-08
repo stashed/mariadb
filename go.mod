@@ -4,6 +4,7 @@ go 1.12
 
 require (
 	github.com/codeskyblue/go-sh v0.0.0-20200712050446-30169cf553fe
+	github.com/davecgh/go-spew v1.1.1
 	github.com/google/gofuzz v1.1.0
 	github.com/spf13/cobra v1.1.1
 	go.bytebuilders.dev/license-verifier/kubernetes v0.7.0
