@@ -1,26 +1,27 @@
 ---
-title: Logical Backup & Restore MariaDB | Stash
-description: Take logical backup of MariaDB database using Stash
+title: Backup KubeDB managed MariaDB Cluster using Stash | Stash
+description: Backup KubeDB managed stanadlone MariaDB using Stash
 menu:
   docs_{{ .version }}:
-    identifier: mariadb-guide-{{ .subproject_version }}-helm-logical
-    name: Logical Backup
-    parent: stash-mariadb-guides-{{ .subproject_version }}-helm
-    weight: 10
+    identifier: mariadb-guide-{{ .subproject_version }}-kubedb-cluster
+    name: MariaDB Cluster
+    parent: stash-mariadb-guides-{{ .subproject_version }}-kubedb
+    weight: 20
 product_name: stash
 menu_name: docs_{{ .version }}
 section_menu_id: stash-addons
 ---
 
-# Take a logical backup of the MariaDB database using Stash
+# Backup KubeDB managed MariaDB Cluster using Stash
 
-Stash `v0.11.8+` supports backup and restoration of MariaDB databases. This guide will show you how you can take a logical backup of your MariaDB databases and restore them using Stash.
+Stash `v0.11.8+` supports backup and restoration of MariaDB databases. This guide will show you how you can take a logical backup of your MariaDB database cluster and restore them using Stash.
 
 ## Before You Begin
 
 - At first, you need to have a Kubernetes cluster, and the `kubectl` command-line tool must be configured to communicate with your cluster.
 - Install Stash in your cluster following the steps [here](/docs/setup/README.md).
 - Install MariaDB addon for Stash following the steps [here](/docs/addons/mariadb/setup/install.md).
+- Install KubeDB operator in your cluster from [here](https://kubedb.com/docs/latest/setup).
 - If you are not familiar with how Stash backup and restore MariaDB databases, please check the following guide [here](/docs/addons/mariadb/overview.md).
 
 You have to be familiar with following custom resources:
@@ -39,108 +40,119 @@ $ kubectl create ns demo
 namespace/demo created
 ```
 
-> Note: YAML files used in this tutorial are stored [here](https://github.com/stashed/mariadb/tree/{{< param "info.subproject_version" >}}/docs/helm/examples).
+> Note: YAML files used in this tutorial are stored [here](https://github.com/stashed/mariadb/tree/{{< param "info.subproject_version" >}}/docs/kubedb/cluster/examples).
 
 ## Prepare MariaDB
 
-In this section, we are going to deploy a MariaDB database. Then, we are going to insert some sample data into it.
+In this section, we are going to deploy a MariaDB database using KubeDB. Then, we are going to insert some sample data into it.
 
-### Deploy MariaDB
+### Deploy MariaDB using KubeDB
 
-At first, let's deploy a MariaDB database. Here, we are going to use [bitnami/mariadb](https://artifacthub.io/packages/helm/bitnami/mariadb)  chart from [ArtifactHub](https://artifacthub.io/).
+At first, let's deploy a MariaDB database named `sample-mariadb` of 3 replicas using [KubeDB/MariaDB](https://kubedb.com/).
 
-Let's deploy a MariaDB database named `sample-mariadb` using Helm as below,
-
-```bash
-# Add bitnami chart registry
-$ helm repo add bitnami https://charts.bitnami.com/bitnami
-# Update helm registries
-$ helm repo update
-# Install bitnami/mariadb chart into demo namespace
-$ helm install sample-mariadb bitnami/mariadb -n demo
+``` yaml
+apiVersion: kubedb.com/v1alpha2
+kind: MariaDB
+metadata:
+  name: sample-mariadb
+  namespace: demo
+spec:
+  version: "10.5"
+  replicas: 3
+  storageType: Durable
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+  terminationPolicy: WipeOut
 ```
 
-This chart will create the necessary StatefulSet, Secret, Service etc. for the database. You can easily view all the resources created by chart using [ketall](https://github.com/corneliusweig/ketall) `kubectl` plugin as below,
+``` bash
+$ kubectl apply -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/kubedb/cluster/examples/sample-mariadb.yaml
+mariadb.kubedb.com/sample-mariadb created
+```
+
+This MariaDB object will create the necessary StatefulSet, Secret, Service etc for the database. You can easily view all the resources created by MariaDB object using [ketall](https://github.com/corneliusweig/ketall) `kubectl` plugin as below,
 
 ```bash
 $ kubectl get-all -n demo -l app.kubernetes.io/instance=sample-mariadb
-NAME                                              NAMESPACE  AGE
-configmap/sample-mariadb                          demo       5m59s  
-endpoints/sample-mariadb                          demo       5m59s  
-persistentvolumeclaim/data-sample-mariadb-0       demo       5m59s  
-pod/sample-mariadb-0                              demo       5m59s  
-secret/sample-mariadb                             demo       5m59s  
-serviceaccount/sample-mariadb                     demo       5m59s  
-service/sample-mariadb                            demo       5m59s  
-controllerrevision.apps/sample-mariadb-bb8d8865b  demo       5m59s  
-statefulset.apps/sample-mariadb                   demo       5m59s
+NAME                                                  NAMESPACE  AGE
+endpoints/sample-mariadb                              demo       28m  
+endpoints/sample-mariadb-pods                         demo       28m  
+persistentvolumeclaim/data-sample-mariadb-0           demo       28m  
+pod/sample-mariadb-0                                  demo       28m  
+secret/sample-mariadb-auth                            demo       28m  
+serviceaccount/sample-mariadb                         demo       28m  
+service/sample-mariadb                                demo       28m  
+service/sample-mariadb-pods                           demo       28m  
+appbinding.appcatalog.appscode.com/sample-mariadb     demo       28m  
+controllerrevision.apps/sample-mariadb-7b7f58b68f     demo       28m  
+statefulset.apps/sample-mariadb                       demo       28m  
+poddisruptionbudget.policy/sample-mariadb             demo       28m  
+rolebinding.rbac.authorization.k8s.io/sample-mariadb  demo       28m  
+role.rbac.authorization.k8s.io/sample-mariadb         demo       28m
 ```
 
-Now, wait for the database pod `sample-mariadb-0` to go into `Running` state,
+Now, wait for 3 database pods to go into `Running` state,
 
 ```bash
-$ kubectl get pod -n demo sample-mariadb-0
+$ kubectl get pod -n demo -l app.kubernetes.io/instance=sample-mariadb
 NAME               READY   STATUS    RESTARTS   AGE
-sample-mariadb-0   1/1     Running   0          11m
+sample-mariadb-0   1/1     Running   0          2m7s
+sample-mariadb-1   1/1     Running   0          101s
+sample-mariadb-2   1/1     Running   0          81s
 ```
 
-Once the database pod is in `Running` state, verify that the database is ready to accept the connections.
+Once the database pod is in `Running` state, verify that all 3 nodes joined the cluster.
 
 ```bash
-$ kubectl logs -n demo sample-mariadb-0
-mariadb 10:44:37.29 
-mariadb 10:44:37.29 Welcome to the Bitnami mariadb container
-...
-2020-12-03 10:44:46 0 [Note] /opt/bitnami/mariadb/sbin/mysqld: ready for connections.
-Version: '10.5.8-MariaDB'  socket: '/opt/bitnami/mariadb/tmp/mysql.sock'  port: 3306  Source distribution
+$ kubectl exec -it -n demo sample-mariadb-0 -- bash
+root@sample-mariadb-0:/ mysql -u${MYSQL_ROOT_USERNAME} -p${MYSQL_ROOT_PASSWORD}
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 26
+Server version: 10.5.8-MariaDB-1:10.5.8+maria~focal mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> show status like 'wsrep_cluster_size';
++--------------------+-------+
+| Variable_name      | Value |
++--------------------+-------+
+| wsrep_cluster_size | 3     |
++--------------------+-------+
+1 row in set (0.001 sec)
+
+MariaDB [(none)]> quit;
+Bye
 ```
 
-From the above log, we can see the database is ready to accept connections.
+From the above log, we can see that 3 nodes are ready to accept connections.
 
 ### Insert Sample Data
 
-Now, we are going to exec into the database pod and create some sample data. The helm chart has created a secret with access credentials. Let's find out the credentials from the Secret,
+Now, we are going to exec into the database pod and create some sample data. The `sample-mariadb` object creates a secret containing the credentials of MariaDB and set them as pod's Environment varibles `MYSQL_ROOT_USERNAME` and `MYSQL_ROOT_PASSWORD`. 
 
-```yaml
-$ kubectl get secret -n demo sample-mariadb -o yaml
-apiVersion: v1
-data:
-  mariadb-password: ZlFSdzA1ZXRvbg==
-  mariadb-root-password: Y1ZrUXA0TXdENQ==
-kind: Secret
-metadata:
-  annotations:
-    meta.helm.sh/release-name: sample-mariadb
-    meta.helm.sh/release-namespace: demo
-  creationTimestamp: "2020-12-03T10:43:43Z"
-  labels:
-    app.kubernetes.io/instance: sample-mariadb
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: mariadb
-    helm.sh/chart: mariadb-9.0.1
-  ....
-  name: sample-mariadb
-  namespace: demo
-type: Opaque
-```
-
-Here, we are going to use the root user credential `mariadb-root-password` to insert the sample data.
-
-At first, let's export the username and password as environment variables to make further commands re-usable.
+Here, we are going to use the root user (`MYSQL_ROOT_USERNAME`) credential `MYSQL_ROOT_PASSWORD` to insert the sample data. Now, let's exec into one of the pods and insert some sample data,
 
 ```bash
-export USER_NAME=root
-export PASSWORD=$(kubectl get secrets -n demo sample-mariadb -o jsonpath='{.data.\mariadb-root-password}' | base64 -d)
-```
+$ kubectl exec -it -n demo sample-mariadb-0 -- bash
+root@sample-mariadb-0:/ mysql -u${MYSQL_ROOT_USERNAME} -p${MYSQL_ROOT_PASSWORD}
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 341
+Server version: 10.5.8-MariaDB-1:10.5.8+maria~focal mariadb.org binary distribution
 
-Now, let's exec into the database pod and insert some sample data,
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
 
-```bash
-$ kubectl exec -it -n demo sample-mariadb-0 -- mariadb --user=$USER_NAME --password=$PASSWORD
-...
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
 # Let's create a database named "company"
-MariaDB [(none)]> create database company;
-Query OK, 1 row affected (0.001 sec)
+MariaDB [(none)]>  create database company;
+Query OK, 1 row affected (0.000 sec)
 
 # Verify that the database has been created successfully
 MariaDB [(none)]> show databases;
@@ -149,14 +161,12 @@ MariaDB [(none)]> show databases;
 +--------------------+
 | company            |
 | information_schema |
-| my_database        |
 | mysql              |
 | performance_schema |
-| test               |
 +--------------------+
-6 rows in set (0.001 sec)
+4 rows in set (0.001 sec)
 
-# Now, let create a table called "employee" in the "company" table
+# Now, let's create a table called "employee" in the "company" table
 MariaDB [(none)]> create table company.employees ( name varchar(50), salary int);
 Query OK, 0 rows affected (0.018 sec)
 
@@ -167,7 +177,7 @@ MariaDB [(none)]> show tables in company;
 +-------------------+
 | employees         |
 +-------------------+
-1 row in set (0.001 sec)
+1 row in set (0.007 sec)
 
 # Now, let's insert a sample row in the table
 MariaDB [(none)]> insert into company.employees values ('John Doe', 5000);
@@ -178,7 +188,7 @@ MariaDB [(none)]> insert into company.employees values ('James William', 7000);
 Query OK, 1 row affected (0.002 sec)
 
 # Verify that the rows have been inserted into the table successfully
-MariaDB [(none)]> select * from company.employees;
+MariaDB [(none)]>  select * from company.employees;
 +---------------+--------+
 | name          | salary |
 +---------------+--------+
@@ -209,63 +219,21 @@ mariadb-restore-{{< param "info.subproject_version" >}}   35s
 
 This addon should be able to take backup of the databases with matching major versions as discussed in [Addon Version Compatibility](/docs/addons/mariadb/README.md#addon-version-compatibility).
 
-### Create AppBinding
+### Ensure AppBinding
 
 Stash needs to know how to connect with the database. An `AppBinding` exactly provides this information. It holds the Service and Secret information of the database. You have to point to the respective `AppBinding` as a target of backup instead of the database itself.
 
 Stash expect your database Secret to have `username` and `password` keys. If your database secret does not have them, the `AppBinding` can also help here. You can specify a `secretTransforms` section with the mapping between the current keys and the desired keys.
 
-Here, is the YAML of the `AppBinding` that we are going to create for the MariaDB database we have deployed earlier.
-
-```yaml
-apiVersion: appcatalog.appscode.com/v1alpha1
-kind: AppBinding
-metadata:
-  name: sample-mariadb
-  namespace: demo
-spec:
-  clientConfig:
-    service:
-      name: sample-mariadb
-      path: /
-      port: 3306
-      scheme: mysql
-  secret:
-    name: sample-mariadb
-  secretTransforms:
-  - addKey:
-      key: username
-      stringValue: root
-  - renameKey:
-      from: mariadb-root-password
-      to: password
-  type: mariadb
-  version: 10.5.8
-```
-
-Here,
-
-- **.spec.clientConfig.service** specifies the Service information to use to connects with the database.
-- **.spec.secret** specifies the name of the Secret that holds necessary credentials to access the database.
-- **.spec.secretTransforms** specifies the transformations required to achieve the desired keys from the current Secret. You can apply the following transformations here:
-  - **addKey**: If your database Secret does not have an equivalent key expected by Stash, you can add the key using `addKey` transformation. Here, our deployed MariaDB Secret didn't have any key equivalent to `username`. Hence, we are adding the key using `addKey` transformation.
-  - **renameKey**: If your database Secret does not have a key expected by Stash but it has an equivalent key that is used for the same purpose, you can use `renameKey` transformation to specify the mapping between the keys. For example, our MariaDB Secret didn't have `password` key but it has an equivalent `mariadb-root-password` key that contains password for the root user. Hence, we are telling Stash using `renameKey` transformation that the `mariadb-root-password` should be used as `password` key.
-  - **addKeysFrom**: You can also merge keys from another Secret using `addKeysFrom` transformation. You have to specify the respective Secret name and namespace as below:
-    ```yaml
-    addKeysFrom:
-      name: <secret name>
-      namespace: <secret namespace>
-    ```
-- `spec.type` specifies the type of the database. This is particularly helpful in auto-backup where you want to use different path prefixes for different types of database.
-
-Let's create the `AppBinding` we have shown above,
+You don't need to worry about appbindings if you are using KubeDB. It creates an appbinding containing the necessary informations when you deploy the database. Let's ensure the appbinding create by `KubeDB` operator.
 
 ```bash
-$ kubectl apply -f https://github.com/stashed/mariadb/tree/{{< param "info.subproject_version" >}}/docs/helm/examples/appbinding.yaml
-appbinding.appcatalog.appscode.com/sample-mariadb created
+$ kubectl get appbinding -n demo 
+NAME             TYPE                 VERSION   AGE
+sample-mariadb   kubedb.com/mariadb   10.5      62m
 ```
 
->The `secretTransforms` does not modify your original database Secret. Stash just uses those transformations to obtain the desired keys from the original Secret.
+We have a appbinding named same as database name `sample-mariadb`. We will use this later for connecting into this database.
 
 ### Prepare Backend
 
@@ -307,7 +275,7 @@ spec:
 Let's create the `Repository` we have shown above,
 
 ```bash
-$ kubectl create -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/helm/examples/repository.yaml
+$ kubectl apply -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/kubedb/cluster/examples/repository.yaml
 repository.stash.appscode.com/gcs-repo created
 ```
 
@@ -319,7 +287,7 @@ To schedule a backup, we have to create a `BackupConfiguration` object targeting
 
 #### Create BackupConfiguration
 
-Below is the YAML for `BackupConfiguration` object we care going to use to backup the `sample-mariadb` database we have deployed earlier,
+Below is the YAML for `BackupConfiguration` object we are going to use to backup the `sample-mariadb` database we have deployed earlier,
 
 ```yaml
 apiVersion: stash.appscode.com/v1beta1
@@ -353,7 +321,7 @@ Here,
 Let's create the `BackupConfiguration` object we have shown above,
 
 ```bash
-$ kubectl create -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/examples/backupconfiguration.yaml
+$ kubectl apply -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/kubedb/cluster/examples/backupconfiguration.yaml
 backupconfiguration.stash.appscode.com/sample-mariadb-backup created
 ```
 
@@ -396,11 +364,11 @@ gcs-repo   true        1.327 MiB   1                60s                      8m
 ```
 
 Now, if we navigate to the GCS bucket, we will see the backed up data has been stored in `demo/mariadb/sample-mariadb` directory as specified by `.spec.backend.gcs.prefix` field of the `Repository` object.
-
 <figure align="center">
-  <img alt="Backup data in GCS Bucket" src="/docs/helm/images/sample-mariadb-backup.png">
+  <img alt="Backup data in GCS Bucket" src="/docs/addons/mariadb/guides/{{< param "info.subproject_version" >}}/kubedb/cluster/images/sample-mariadb-backup.png">
   <figcaption align="center">Fig: Backup data in GCS Bucket</figcaption>
 </figure>
+
 
 > Note: Stash keeps all the backed up data encrypted. So, data in the backend will not make any sense until they are decrypted.
 
@@ -446,7 +414,15 @@ stash-backup-sample-mariadb-backup   */5 * * * *   True      0        2m59s     
 Now, let's simulate an accidental deletion scenario. Here, we are going to exec into the database pod and delete the `company` database we had created earlier.
 
 ```bash
-$ kubectl exec -it -n demo sample-mariadb-0 -- mariadb --user=$USER_NAME --password=$PASSWORD
+$ kubectl exec -it -n demo sample-mariadb-0 -c mariadb -- bash
+root@sample-mariadb-0:/ mysql -u${MYSQL_ROOT_USERNAME} -p${MYSQL_ROOT_PASSWORD}
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 341
+Server version: 10.5.8-MariaDB-1:10.5.8+maria~focal mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 # View current databases
 MariaDB [(none)]> show databases;
@@ -455,12 +431,10 @@ MariaDB [(none)]> show databases;
 +--------------------+
 | company            |
 | information_schema |
-| my_database        |
 | mysql              |
 | performance_schema |
-| test               |
 +--------------------+
-6 rows in set (0.001 sec)
+4 rows in set (0.001 sec)
 
 # Let's delete the "company" database
 MariaDB [(none)]> drop database company;
@@ -472,12 +446,10 @@ MariaDB [(none)]> show databases;
 | Database           |
 +--------------------+
 | information_schema |
-| my_database        |
 | mysql              |
 | performance_schema |
-| test               |
 +--------------------+
-5 rows in set (0.001 sec)
+3 rows in set (0.000 sec)
 
 MariaDB [(none)]> exit
 Bye
@@ -519,7 +491,7 @@ Here,
 Let's create the `RestoreSession` object object we have shown above,
 
 ```bash
-$ kubectl apply -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/helm/examples/restoresession.yaml
+$ kubectl apply -f https://github.com/stashed/mariadb/raw/{{< param "info.subproject_version" >}}/docs/kubedb/cluster/examples/restoresession.yaml
 restoresession.stash.appscode.com/sample-mariadb-restore created
 ```
 
@@ -539,7 +511,15 @@ The `Succeeded` phase means that the restore process has been completed successf
 Now, let's exec into the database pod and verify whether data actual data was restored or not,
 
 ```bash
-$ kubectl exec -it -n demo sample-mariadb-0 -- mariadb --user=$USER_NAME --password=$PASSWORD
+$ kubectl exec -it -n demo sample-mariadb-0 -c mariadb -- bash
+root@sample-mariadb-0:/ mysql -u${MYSQL_ROOT_USERNAME} -p${MYSQL_ROOT_PASSWORD}
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 341
+Server version: 10.5.8-MariaDB-1:10.5.8+maria~focal mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 # Verify that the "company" database has been restored
 MariaDB [(none)]> show databases;
@@ -548,12 +528,10 @@ MariaDB [(none)]> show databases;
 +--------------------+
 | company            |
 | information_schema |
-| my_database        |
 | mysql              |
 | performance_schema |
-| test               |
 +--------------------+
-6 rows in set (0.000 sec)
+4 rows in set (0.001 sec)
 
 # Verify that the tables of the "company" database have been restored
 MariaDB [(none)]> show tables from company;
@@ -608,11 +586,11 @@ Here, `False` in the `SUSPEND` column means the CronJob is no longer suspended a
 
 ### Restore Into Different Database of the Same Namespace
 
-If you want to restore the backed up data into a different database of the same namespace, you have to create another `AppBinding` pointing to the desired database. Then, you have to create the `RestoreSession` pointing to the new `AppBinding`.
+If you want to restore the backed up data into a different database of the same namespace, you have to use the  `AppBinding` of desired database. Then, you have to create the `RestoreSession` pointing to the new `AppBinding`.
 
 ### Restore Into Different Namespace
 
-If you want to restore into a different namespace of the same cluster, you have to create the Repository, backend Secret, AppBinding, in the desired namespace. You can use [Stash kubectl plugin](https://stash.run/docs/v2020.11.17/guides/latest/cli/cli/) to easily copy the resources into a new namespace. Then, you have to create the `RestoreSession` object in the desired namespace pointing to the Repository, AppBinding of that namespace.
+If you want to restore into a different namespace of the same cluster, you have to create the Repository, backend Secret in the desired namespace. You can use [Stash kubectl plugin](https://stash.run/docs/v2020.11.17/guides/latest/cli/cli/) to easily copy the resources into a new namespace. Then, you have to create the `RestoreSession` object in the desired namespace pointing to the Repository, AppBinding of that namespace.
 
 ### Restore Into Different Cluster
 
@@ -626,6 +604,6 @@ To cleanup the Kubernetes resources created by this tutorial, run:
 kubectl delete -n demo backupconfiguration sample-mariadb-backup
 kubectl delete -n demo restoresession sample-mariadb-restore
 kubectl delete -n demo repository gcs-repo
-# delete the database chart
-helm delete sample-mariadb -n demo
+# delete the database resources
+kubectl delete ns demo
 ```
