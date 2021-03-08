@@ -5,7 +5,7 @@ metadata:
   namespace: demo
 spec:
   task:
-    name: mariadb-restore-v2020.12.17
+    name: mariadb-restore-v2021.03.08
   repository:
     name: gcs-repo
   target:
