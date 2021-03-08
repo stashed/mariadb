@@ -13,7 +13,7 @@ image:
   repository: stash-mariadb
   # Tag of the image that is used to backup/restore MariaDB database.
   # This is usually same as the database version it can backup.
-  tag: v2020.12.17
+  tag: v2021.03.08
 # optional argument to send mariadbdump or mariadb command
 backup:
   # Arguments to pass to `mariadbdump` command  during bakcup process
