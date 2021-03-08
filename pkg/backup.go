@@ -236,7 +236,7 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
 		}
 
-		backupCmd.Args = append(backupCmd.Args, tlsCreds)
+		backupCmd.Args = append(backupCmd.Args, tlsCreds...)
 	}
 
 	// wait for DB ready

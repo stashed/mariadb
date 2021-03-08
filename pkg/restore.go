@@ -197,7 +197,7 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
 		}
 
-		opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, tlsCreds...)
+		restoreCmd.Args = append(restoreCmd.Args, tlsCreds...)
 	}
 
 	for _, arg := range strings.Fields(opt.myArgs) {
