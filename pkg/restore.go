@@ -174,8 +174,8 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 
 	// set env for mariadb
 	resticWrapper.SetEnv(EnvMariaDBPassword, string(appBindingSecret.Data[MariaDBPassword]))
-	// setup pipe command
-	opt.dumpOptions.StdoutPipeCommand = restic.Command{
+	// setup restore command
+	restoreCmd := restic.Command{
 		Name: MariaDBRestoreCMD,
 		Args: []interface{}{
 			"-u", string(appBindingSecret.Data[MariaDBUser]),
@@ -184,10 +184,10 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 	}
 	// if port is specified, append port in the arguments
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
-		opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
+		restoreCmd.Args = append(restoreCmd.Args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
 	}
 	for _, arg := range strings.Fields(opt.myArgs) {
-		opt.dumpOptions.StdoutPipeCommand.Args = append(opt.dumpOptions.StdoutPipeCommand.Args, arg)
+		restoreCmd.Args = append(restoreCmd.Args, arg)
 	}
 
 	// wait for DB ready
@@ -195,6 +195,9 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 	if err != nil {
 		return nil, err
 	}
+
+	// append the restore command to the pipeline
+	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, restoreCmd)
 
 	// Run dump
 	return resticWrapper.Dump(opt.dumpOptions, targetRef)
