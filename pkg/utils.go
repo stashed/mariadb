@@ -24,7 +24,6 @@ import (
 	"stash.appscode.dev/apimachinery/pkg/restic"
 
 	"github.com/codeskyblue/go-sh"
-	"github.com/davecgh/go-spew/spew"
 	"gomodules.xyz/x/log"
 	core "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
@@ -67,7 +66,6 @@ func (opt *mariadbOptions) waitForDBReady(appBinding *v1alpha1.AppBinding, secre
 		"--host", appBinding.Spec.ClientConfig.Service.Name,
 		"--user", string(secret.Data[MariaDBUser]),
 	}
-	spew.Dump(args)
 	if appBinding.Spec.ClientConfig.Service.Port != 0 {
 		args = append(args, fmt.Sprintf("--port=%d", appBinding.Spec.ClientConfig.Service.Port))
 	}
