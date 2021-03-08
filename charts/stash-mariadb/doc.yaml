@@ -10,11 +10,11 @@ repository:
   name: appscode
 chart:
   name: stash-mariadb
-  version: 10.5.8
+  version: 10.5.8-v1
   values: "-- generate from values file --"
   valuesExample: "-- generate from values file --"
 prerequisites:
 - Kubernetes 1.11+
 release:
-  name: stash-mariadb-10.5.8
+  name: stash-mariadb-10.5.8-v1
   namespace: kube-system
