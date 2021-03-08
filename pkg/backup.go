@@ -236,7 +236,7 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
 		}
 
-		opt.backupOptions.StdinPipeCommand.Args = append(opt.backupOptions.StdinPipeCommand.Args, tlsCreds...)
+		backupCmd.Args = append(backupCmd.Args, tlsCreds)
 	}
 
 	// wait for DB ready
@@ -244,6 +244,10 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 	if err != nil {
 		return nil, err
 	}
+
+	// append the backup command to the pipeline
+	opt.backupOptions.StdinPipeCommands = append(opt.backupOptions.StdinPipeCommands, backupCmd)
+
 	// Run backup
 	return resticWrapper.RunBackup(opt.backupOptions, targetRef)
 }
