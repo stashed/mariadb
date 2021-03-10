@@ -132,7 +132,7 @@ metadata:
   annotations:
     stash.appscode.com/backup-blueprint: mariadb-backup-template
 spec:
-  version: "10.5"
+  version: "10.5.8"
   replicas: 1
   storageType: Durable
   storage:
@@ -303,7 +303,7 @@ metadata:
     stash.appscode.com/backup-blueprint: mariadb-backup-template
     stash.appscode.com/schedule: "*/3 * * * *"
 spec:
-  version: "10.5"
+  version: "10.5.8"
   replicas: 1
   storageType: Durable
   storage:
@@ -499,7 +499,7 @@ metadata:
     stash.appscode.com/backup-blueprint: mariadb-backup-template
     params.stash.appscode.com/args: --databases mysql
 spec:
-  version: "10.5"
+  version: "10.5.8"
   replicas: 1
   storageType: Durable
   storage:

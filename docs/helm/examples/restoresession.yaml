@@ -5,7 +5,11 @@ metadata:
   namespace: demo
 spec:
   task:
+<<<<<<< HEAD
     name: mariadb-restore-v2021.03.08
+=======
+    name: mariadb-restore-10.5.8
+>>>>>>> Update MariaDB image version from 10.5 to 10.5.8
   repository:
     name: gcs-repo
   target:
