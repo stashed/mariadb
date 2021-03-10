@@ -6,11 +6,7 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   task:
-<<<<<<< HEAD
     name: mariadb-backup-v2021.03.08
-=======
-    name: mariadb-backup-10.5.8
->>>>>>> Update MariaDB image version from 10.5 to 10.5.8
   repository:
     name: gcs-repo
   target:
