@@ -57,7 +57,7 @@ metadata:
   name: sample-mariadb
   namespace: demo
 spec:
-  version: "10.5"
+  version: "10.5.8"
   replicas: 3
   storageType: Durable
   storage:
@@ -230,7 +230,7 @@ You don't need to worry about appbindings if you are using KubeDB. It creates an
 ```bash
 $ kubectl get appbinding -n demo 
 NAME             TYPE                 VERSION   AGE
-sample-mariadb   kubedb.com/mariadb   10.5      62m
+sample-mariadb   kubedb.com/mariadb   10.5.8      62m
 ```
 
 We have a appbinding named same as database name `sample-mariadb`. We will use this later for connecting into this database.
