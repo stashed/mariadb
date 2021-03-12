@@ -37,7 +37,7 @@ metadata:
 spec:
   schedule: "*/5 * * * *"
   task:
-    name: mariadb-backup-10.5.8
+    # name: mariadb-backup-10.5.8 # Uncomment if you are not using KubeDB
     params:
     - name: args
       value: --databases testdb
@@ -68,8 +68,8 @@ metadata:
   namespace: demo
 spec:
   schedule: "*/2 * * * *"
-  task:
-    name: mariadb-backup-10.5.8
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-backup-10.5.8
   repository:
     name: gcs-repo
   target:
@@ -100,8 +100,8 @@ metadata:
   namespace: demo
 spec:
   schedule: "*/2 * * * *"
-  task:
-    name: mariadb-backup-10.5.8
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-backup-10.5.8
   repository:
     name: gcs-repo
   target:
@@ -136,8 +136,8 @@ metadata:
   namespace: demo
 spec:
   schedule: "*/5 * * * *"
-  task:
-    name: mariadb-backup-10.5.8
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-backup-10.5.8
   repository:
     name: gcs-repo
   target:
@@ -171,11 +171,9 @@ kind: RestoreSession
 metadata:
   name: sample-mariadb-restore
   namespace: demo
-  labels:
-    app.kubernetes.io/name: mariadb.kubedb.com
 spec:
   task:
-    name: mariadb-restore-10.5.8
+    # name: mariadb-restore-10.5.8 # Uncomment if you are not using KubeDB
     params:
     - name: args
       value: --one-database testdb
@@ -215,11 +213,9 @@ kind: RestoreSession
 metadata:
   name: sample-mariadb-restore
   namespace: demo
-  labels:
-    app.kubernetes.io/name: mariadb.kubedb.com
 spec:
-  task:
-    name: mariadb-restore-10.5.8
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-restore-10.5.8
   repository:
     name: gcs-repo
   target:
@@ -243,11 +239,9 @@ kind: RestoreSession
 metadata:
   name: sample-mariadb-restore
   namespace: demo
-  labels:
-    app.kubernetes.io/name: mariadb.kubedb.com
 spec:
-  task:
-    name: mariadb-restore-10.5.8
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-restore-10.5.8
   repository:
     name: gcs-repo
   target:
@@ -274,11 +268,9 @@ kind: RestoreSession
 metadata:
   name: sample-mariadb-restore
   namespace: demo
-  labels:
-    app.kubernetes.io/name: mariadb.kubedb.com
 spec:
-  task:
-    name: mariadb-restore-10.5.8
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-restore-10.5.8
   repository:
     name: gcs-repo
   target:

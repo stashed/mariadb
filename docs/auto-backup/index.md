@@ -78,8 +78,8 @@ spec:
       prefix: mariadb-backup/${TARGET_NAMESPACE}/${TARGET_APP_RESOURCE}/${TARGET_NAME}
     storageSecretName: gcs-secret
   # ============== Blueprint for BackupConfiguration =================
-  task:
-    name: mariadb-backup-{{< param "info.subproject_version" >}}
+  # task: # Uncomment if you are not using KubeDB
+  #   name: mariadb-backup-{{< param "info.subproject_version" >}}
   schedule: "*/5 * * * *"
   retentionPolicy:
     name: 'keep-last-5'
@@ -223,8 +223,6 @@ metadata:
       apiVersion: appcatalog.appscode.com/v1alpha1
       kind: AppBinding
       name: sample-mariadb
-  task:
-    name: mariadb-backup-{{< param "info.subproject_version" >}}
   tempDir: {}
 status:
   conditions:
@@ -353,19 +351,6 @@ spec:
   backend:
     gcs:
       bucket: stash-testing
-      prefix: stash-backup/demo-2/mariadb/sample-mariadb-2
-    storageSecretName: gcs-secret
-
-apiVersion: stash.appscode.com/v1alpha1
-kind: Repository
-metadata:
-  name: app-sample-mariadb-2
-  namespace: demo-2
-  ...
-spec:
-  backend:
-    gcs:
-      bucket: stash-testing
       prefix: mariadb-backup/demo-2/mariadb/sample-mariadb-2
     storageSecretName: gcs-secret
 ```
@@ -418,8 +403,6 @@ spec:
       apiVersion: appcatalog.appscode.com/v1alpha1
       kind: AppBinding
       name: sample-mariadb-2
-  task:
-    name: mariadb-backup-{{< param "info.subproject_version" >}}
   tempDir: {}
 status:
   conditions:
@@ -592,7 +575,6 @@ spec:
       kind: AppBinding
       name: sample-mariadb-3
   task:
-    name: mariadb-backup-{{< param "info.subproject_version" >}}
     params:
     - name: args
       value: --databases mysql

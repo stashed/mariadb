@@ -297,8 +297,6 @@ metadata:
   namespace: demo
 spec:
   schedule: "*/5 * * * *"
-  task:
-    name: mariadb-backup-{{< param "info.subproject_version" >}}
   repository:
     name: gcs-repo
   target:
@@ -315,7 +313,6 @@ spec:
 Here,
 
 - `.spec.schedule` specifies that we want to backup the database at 5 minutes intervals.
-- `.spec.task.name` specifies the name of the Task object that specifies the necessary Functions and their execution order to backup a MariaDB database.
 - `.spec.target.ref` refers to the AppBinding object that holds the connection information of our targeted database.
 
 Let's create the `BackupConfiguration` object we have shown above,
@@ -468,8 +465,6 @@ metadata:
   name: sample-mariadb-restore
   namespace: demo
 spec:
-  task:
-    name: mariadb-restore-{{< param "info.subproject_version" >}}
   repository:
     name: gcs-repo
   target:
@@ -483,7 +478,6 @@ spec:
 
 Here,
 
-- `.spec.task.name` specifies the name of the Task object that specifies the necessary Functions and their execution order to restore a MariaDB database.
 - `.spec.repository.name` specifies the Repository object that holds the backend information where our backed up data has been stored.
 - `.spec.target.ref` refers to the respective AppBinding of the `sample-mariadb` database.
 - `.spec.rules` specifies that we are restoring data from the latest backup snapshot of the database.
