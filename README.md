@@ -8,26 +8,6 @@
 
 MariaDB backup and restore plugin for [Stash by AppsCode](https://appscode.com/products/stash).
 
-## Install
-
-Install MariaDB 10.5.8 backup or restore plugin for Stash as below.
-
-```console
-helm repo add appscode https://charts.appscode.com/stable/
-helm repo update
-helm install stash-mariadb-10.5.8 appscode/stash-mariadb --version=10.5.8 --namespace=kube-system
-```
-
-To install catalog for all supported MariaDB versions, please visit [here](https://github.com/stashed/catalog).
-
-## Uninstall
-
-Uninstall MariaDB 10.5.8 backup or restore plugin for Stash as below.
-
-```console
-helm uninstall stash-mariadb-10.5.8 --namespace=kube-system
-```
-
 ## Support
 
 To speak with us, please leave a message on [our website](https://appscode.com/contact/).
