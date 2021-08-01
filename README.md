@@ -1,7 +1,7 @@
 [![Go Report Card](https://goreportcard.com/badge/stash.appscode.dev/mariadb)](https://goreportcard.com/report/stash.appscode.dev/mariadb)
 [![Build Status](https://travis-ci.org/stashed/mariadb.svg?branch=master)](https://travis-ci.org/stashed/mariadb)
 [![Docker Pulls](https://img.shields.io/docker/pulls/stashed/stash-mariadb.svg)](https://hub.docker.com/r/stashed/stash-mariadb/)
-[![Slack](https://slack.appscode.com/badge.svg)](https://slack.appscode.com)
+[![Slack](https://shields.io/badge/Join_Slack-salck?color=4A154B&logo=slack)](https://slack.appscode.com)
 [![Twitter](https://img.shields.io/twitter/follow/appscodehq.svg?style=social&logo=twitter&label=Follow)](https://twitter.com/intent/follow?screen_name=AppsCodeHQ)
 
 # MariaDB
