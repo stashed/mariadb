@@ -195,8 +195,12 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 		Args: []interface{}{
 			"-u", string(appBindingSecret.Data[MariaDBUser]),
 			"-h", hostname,
-			"--port", fmt.Sprintf("%d", port),
 		},
+	}
+
+	// if port is specified, append port in the arguments
+	if port != 0 {
+		restoreCmd.Args = append(restoreCmd.Args, fmt.Sprintf("--port=%d", port))
 	}
 
 	// if ssl enabled, add ca.crt in the arguments

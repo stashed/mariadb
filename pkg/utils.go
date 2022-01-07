@@ -78,7 +78,10 @@ func (opt *mariadbOptions) waitForDBReady(appBinding *v1alpha1.AppBinding, secre
 		"ping",
 		"--host", hostname,
 		"--user", string(secret.Data[MariaDBUser]),
-		"--port", fmt.Sprintf("%d", port),
+	}
+	// if port is specified, append port in the arguments
+	if port != 0 {
+		args = append(args, fmt.Sprintf("--port=%d", port))
 	}
 
 	if appBinding.Spec.ClientConfig.CABundle != nil {

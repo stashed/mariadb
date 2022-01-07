@@ -231,8 +231,12 @@ func (opt *mariadbOptions) backupMariaDB(targetRef api_v1beta1.TargetRef) (*rest
 		Args: []interface{}{
 			"-u", string(appBindingSecret.Data[MariaDBUser]),
 			"-h", hostname,
-			"--port", fmt.Sprintf("%d", port),
 		},
+	}
+
+	// if port is specified, append port in the arguments
+	if port != 0 {
+		backupCmd.Args = append(backupCmd.Args, fmt.Sprintf("--port=%d", port))
 	}
 
 	for _, arg := range strings.Fields(opt.myArgs) {
