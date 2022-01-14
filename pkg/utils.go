@@ -17,18 +17,22 @@ limitations under the License.
 package pkg
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
+	"strings"
 
 	stash "stash.appscode.dev/apimachinery/client/clientset/versioned"
 	"stash.appscode.dev/apimachinery/pkg/restic"
 
-	"gomodules.xyz/go-sh"
-	core "k8s.io/api/core/v1"
+	shell "gomodules.xyz/go-sh"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/klog/v2"
 	kmapi "kmodules.xyz/client-go/api/v1"
-	"kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
+	appcatalog "kmodules.xyz/custom-resources/apis/appcatalog/v1alpha1"
 	appcatalog_cs "kmodules.xyz/custom-resources/client/clientset/versioned"
 )
 
@@ -59,34 +63,77 @@ type mariadbOptions struct {
 	dumpOptions   restic.DumpOptions
 }
 
-func (opt *mariadbOptions) waitForDBReady(appBinding *v1alpha1.AppBinding, secret *core.Secret) error {
-	klog.Infoln("Waiting for the database to be ready.....")
-	shell := sh.NewSession()
-	shell.SetEnv(EnvMariaDBPassword, string(secret.Data[MariaDBPassword]))
+type sessionWrapper struct {
+	sh  *shell.Session
+	cmd *restic.Command
+}
 
+func (opt *mariadbOptions) newSessionWrapper(cmd string) *sessionWrapper {
+	return &sessionWrapper{
+		sh: shell.NewSession(),
+		cmd: &restic.Command{
+			Name: cmd,
+		},
+	}
+}
+
+func (session *sessionWrapper) setDatabaseCredentials(kubeClient kubernetes.Interface, appBinding *appcatalog.AppBinding) error {
+	appBindingSecret, err := kubeClient.CoreV1().Secrets(appBinding.Namespace).Get(context.TODO(), appBinding.Spec.Secret.Name, metav1.GetOptions{})
+	if err != nil {
+		return err
+	}
+
+	err = appBinding.TransformSecret(kubeClient, appBindingSecret.Data)
+	if err != nil {
+		return err
+	}
+
+	session.cmd.Args = append(session.cmd.Args, "-u", string(appBindingSecret.Data[MariaDBUser]))
+	session.sh.SetEnv(EnvMariaDBPassword, string(appBindingSecret.Data[MariaDBPassword]))
+	return nil
+}
+
+func (session *sessionWrapper) setDatabaseConnectionParameters(appBinding *appcatalog.AppBinding) error {
 	hostname, err := appBinding.Hostname()
 	if err != nil {
 		return err
 	}
+	session.cmd.Args = append(session.cmd.Args, "-h", hostname)
 
 	port, err := appBinding.Port()
 	if err != nil {
 		return err
 	}
-
-	args := []interface{}{
-		"ping",
-		"--host", hostname,
-		"--user", string(secret.Data[MariaDBUser]),
-	}
 	// if port is specified, append port in the arguments
 	if port != 0 {
-		args = append(args, fmt.Sprintf("--port=%d", port))
+		session.cmd.Args = append(session.cmd.Args, fmt.Sprintf("--port=%d", port))
 	}
+	return nil
+}
 
+func (session *sessionWrapper) setUserArgs(args string) {
+	for _, arg := range strings.Fields(args) {
+		session.cmd.Args = append(session.cmd.Args, arg)
+	}
+}
+
+func (session *sessionWrapper) setTLSParameters(appBinding *appcatalog.AppBinding, scratchDir string) error {
+	// if ssl enabled, add ca.crt in the arguments
 	if appBinding.Spec.ClientConfig.CABundle != nil {
-		args = append(args, fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)))
-	}
+		if err := ioutil.WriteFile(filepath.Join(scratchDir, MariaDBTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
+			return err
+		}
+		tlsCreds := []interface{}{
+			fmt.Sprintf("--ssl-ca=%v", filepath.Join(scratchDir, MariaDBTLSRootCA)),
+		}
 
-	return shell.Command("mysqladmin", args...).Run()
+		session.cmd.Args = append(session.cmd.Args, tlsCreds...)
+	}
+	return nil
+}
+
+func (session *sessionWrapper) waitForDBReady() error {
+	klog.Infoln("Waiting for the database to be ready....")
+	args := append(session.cmd.Args, "ping")
+	return session.sh.Command("mysqladmin", args...).Run()
 }

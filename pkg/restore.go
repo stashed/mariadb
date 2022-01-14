@@ -18,11 +18,7 @@ package pkg
 
 import (
 	"context"
-	"fmt"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
 
 	api_v1beta1 "stash.appscode.dev/apimachinery/apis/stash/v1beta1"
 	"stash.appscode.dev/apimachinery/pkg/restic"
@@ -161,72 +157,36 @@ func (opt *mariadbOptions) restoreMariaDB(targetRef api_v1beta1.TargetRef) (*res
 		return nil, err
 	}
 
-	appBindingSecret, err := opt.kubeClient.CoreV1().Secrets(opt.namespace).Get(context.TODO(), appBinding.Spec.Secret.Name, metav1.GetOptions{})
+	session := opt.newSessionWrapper(MariaDBRestoreCMD)
+
+	err = session.setDatabaseCredentials(opt.kubeClient, appBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	err = appBinding.TransformSecret(opt.kubeClient, appBindingSecret.Data)
+	err = session.setDatabaseConnectionParameters(appBinding)
 	if err != nil {
 		return nil, err
 	}
 
-	resticWrapper, err := restic.NewResticWrapper(opt.setupOptions)
+	err = session.setTLSParameters(appBinding, opt.setupOptions.ScratchDir)
 	if err != nil {
 		return nil, err
 	}
 
-	// set env for mariadb
-	resticWrapper.SetEnv(EnvMariaDBPassword, string(appBindingSecret.Data[MariaDBPassword]))
-
-	hostname, err := appBinding.Hostname()
+	err = session.waitForDBReady()
 	if err != nil {
 		return nil, err
 	}
 
-	port, err := appBinding.Port()
-	if err != nil {
-		return nil, err
-	}
-
-	// setup restore command
-	restoreCmd := restic.Command{
-		Name: MariaDBRestoreCMD,
-		Args: []interface{}{
-			"-u", string(appBindingSecret.Data[MariaDBUser]),
-			"-h", hostname,
-		},
-	}
-
-	// if port is specified, append port in the arguments
-	if port != 0 {
-		restoreCmd.Args = append(restoreCmd.Args, fmt.Sprintf("--port=%d", port))
-	}
-
-	// if ssl enabled, add ca.crt in the arguments
-	if appBinding.Spec.ClientConfig.CABundle != nil {
-		if err := ioutil.WriteFile(filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
-			return nil, err
-		}
-		tlsCreds := []interface{}{
-			fmt.Sprintf("--ssl-ca=%v", filepath.Join(opt.setupOptions.ScratchDir, MariaDBTLSRootCA)),
-		}
-
-		restoreCmd.Args = append(restoreCmd.Args, tlsCreds...)
-	}
-
-	for _, arg := range strings.Fields(opt.myArgs) {
-		restoreCmd.Args = append(restoreCmd.Args, arg)
-	}
-
-	err = opt.waitForDBReady(appBinding, appBindingSecret)
-	if err != nil {
-		return nil, err
-	}
+	session.setUserArgs(opt.myArgs)
 
 	// append the restore command to the pipeline
-	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, restoreCmd)
-
+	opt.dumpOptions.StdoutPipeCommands = append(opt.dumpOptions.StdoutPipeCommands, *session.cmd)
+	resticWrapper, err := restic.NewResticWrapperFromShell(opt.setupOptions, session.sh)
+	if err != nil {
+		return nil, err
+	}
 	// Run dump
 	return resticWrapper.Dump(opt.dumpOptions, targetRef)
 }
