@@ -45,7 +45,6 @@ func NewCmdBackup() *cobra.Command {
 		masterURL      string
 		kubeconfigPath string
 		opt            = mariadbOptions{
-
 			myArgs:      "--all-databases",
 			waitTimeout: 300,
 			setupOptions: restic.SetupOptions{
@@ -114,7 +113,6 @@ func NewCmdBackup() *cobra.Command {
 			}
 
 			return nil
-
 		},
 	}
 
