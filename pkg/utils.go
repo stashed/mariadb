@@ -50,13 +50,14 @@ type mariadbOptions struct {
 	stashClient   stash.Interface
 	catalogClient appcatalog_cs.Interface
 
-	namespace         string
-	backupSessionName string
-	appBindingName    string
-	myArgs            string
-	waitTimeout       int32
-	outputDir         string
-	storageSecret     kmapi.ObjectReference
+	namespace           string
+	backupSessionName   string
+	appBindingName      string
+	appBindingNamespace string
+	myArgs              string
+	waitTimeout         int32
+	outputDir           string
+	storageSecret       kmapi.ObjectReference
 
 	setupOptions  restic.SetupOptions
 	backupOptions restic.BackupOptions
