@@ -127,7 +127,7 @@ func (session *sessionWrapper) setTLSParameters(appBinding *appcatalog.AppBindin
 		if err := os.WriteFile(filepath.Join(scratchDir, MariaDBTLSRootCA), appBinding.Spec.ClientConfig.CABundle, os.ModePerm); err != nil {
 			return err
 		}
-		tlsCreds := []interface{}{
+		tlsCreds := []any{
 			fmt.Sprintf("--ssl-ca=%v", filepath.Join(scratchDir, MariaDBTLSRootCA)),
 		}
 
